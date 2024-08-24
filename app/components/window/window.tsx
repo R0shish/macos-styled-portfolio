@@ -276,4 +276,8 @@ const WindowControlButton: React.FC<WindowControlButtonProps> = memo(
   }
 );
 
+WindowTitleBar.displayName = "WindowTitleBar";
+WindowControlButton.displayName = "WindowControlButton";
+Window.displayName = "Window";
+
 export default memo(Window);

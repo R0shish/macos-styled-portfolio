@@ -34,4 +34,6 @@ const DateTimeDisplay: React.FC = React.memo(() => {
   );
 });
 
+DateTimeDisplay.displayName = "DateTimeDisplay";
+
 export default DateTimeDisplay;
