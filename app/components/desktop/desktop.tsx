@@ -13,7 +13,7 @@ const Desktop = () => {
       label: "About Me",
       image: TestImage,
       redirect: () => {
-        window.open("/about");
+        window.open("/CV.pdf");
       },
     },
     {
@@ -21,7 +21,7 @@ const Desktop = () => {
       label: "CV",
       image: TestImage,
       redirect: () => {
-        window.open("/cv");
+        window.open("/CV.pdf");
       },
     },
     {

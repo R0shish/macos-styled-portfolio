@@ -45,7 +45,7 @@ const DesktopIcon: React.FC<DesktopIconProps> = ({
       );
 
       const newX = window.innerWidth - constrainedX - dragOffset.x;
-      const newY = constrainedY - dragOffset.y;
+      const newY = constrainedY - dragOffset.y + 85;
 
       setPosition({
         x: newX,
