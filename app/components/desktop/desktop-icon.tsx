@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 
 interface DesktopIconProps {
   initialPosition: { x: number; y: number };
   iconLabel: string;
-  iconImage: string;
+  iconImage: StaticImageData;
   isSelected: boolean;
   onSelect: () => void;
   onDoubleClick: () => void;
@@ -89,7 +89,7 @@ const DesktopIcon: React.FC<DesktopIconProps> = ({
       >
         <Image
           src={iconImage}
-          alt="Picture of the author"
+          alt="icon"
           width={60}
           height={60}
           draggable={false}

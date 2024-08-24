@@ -2,6 +2,10 @@ import React from "react";
 import DateTimeDisplay from "./date-time-display";
 import Image from "next/image";
 
+import AppleLogo from "../../assets/icons/apple.png";
+import SearchLogo from "../../assets/icons/search.svg";
+import ControlCenterLogo from "../../assets/icons/control-center.svg";
+
 const menuItems: string[] = ["File", "Edit", "View", "Go", "Window", "Help"];
 
 interface MenuItemProps {
@@ -17,7 +21,7 @@ const Menubar: React.FC = () => {
       <div className="flex space-x-4 items-center">
         <Image
           className="ml-6 mr-1"
-          src="/icons/apple.png"
+          src={AppleLogo}
           alt="apple"
           width={13}
           height={13}
@@ -31,14 +35,14 @@ const Menubar: React.FC = () => {
         <div className="flex">
           <Image
             className="mx-2"
-            src="/icons/search.svg"
+            src={SearchLogo}
             alt="control center"
             width={16}
             height={16}
           />
           <Image
             className="mx-2"
-            src="/icons/control-center.svg"
+            src={ControlCenterLogo}
             alt="control center"
             width={16}
             height={16}

@@ -18,6 +18,9 @@ import {
 import { useRef, useState } from "react";
 import Image from "next/image";
 
+import GitHub from "../../assets/images/github.webp";
+import LinkedIn from "../../assets/images/linkedin.png";
+
 export const FloatingDock = ({
   desktopClassName,
   mobileClassName,
@@ -45,28 +48,14 @@ export const FloatingDock = ({
     },
     {
       title: "LinkedIn",
-      icon: (
-        <Image
-          className="rounded-xl"
-          src="/images/linkedin.png"
-          alt="Linkedin"
-          fill
-        />
-      ),
+      icon: <Image className="rounded-xl" src={LinkedIn} alt="Linkedin" fill />,
       onClick: () => {
         window.open("https://www.linkedin.com/in/r0shish", "_blank");
       },
     },
     {
       title: "GitHub",
-      icon: (
-        <Image
-          className="rounded-xl"
-          src="/images/github.webp"
-          alt="Linkedin"
-          fill
-        />
-      ),
+      icon: <Image className="rounded-xl" src={GitHub} alt="GitHub" fill />,
       onClick: () => {
         window.open("https://www.github.com/r0shish", "_blank");
       },

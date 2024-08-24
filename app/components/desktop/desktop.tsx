@@ -2,12 +2,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import DesktopIcon from "./desktop-icon";
 
+// Images
+import TestImage from "../../assets/images/test.png";
+import LinkedIn from "../../assets/images/linkedin.png";
+
 const Desktop = () => {
   const [icons, setIcons] = useState([
     {
       id: 0,
       label: "About Me",
-      image: "/images/test.png",
+      image: TestImage,
       redirect: () => {
         window.open("/about");
       },
@@ -15,7 +19,7 @@ const Desktop = () => {
     {
       id: 1,
       label: "CV",
-      image: "/images/test.png",
+      image: TestImage,
       redirect: () => {
         window.open("/cv");
       },
@@ -23,7 +27,7 @@ const Desktop = () => {
     {
       id: 2,
       label: "LinkedIn",
-      image: "/images/linkedin.png",
+      image: LinkedIn,
       redirect: () => {
         window.open("https://www.linkedin.com/in/r0shish");
       },
