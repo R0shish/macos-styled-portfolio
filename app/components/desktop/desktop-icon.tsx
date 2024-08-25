@@ -40,7 +40,7 @@ const DesktopIcon: React.FC<DesktopIconProps> = ({
         Math.min(e.clientX, window.innerWidth - 30)
       );
       const constrainedY = Math.max(
-        85,
+        8,
         Math.min(e.clientY - 85, window.innerHeight - 85)
       );
 
