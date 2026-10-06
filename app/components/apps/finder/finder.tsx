@@ -27,11 +27,16 @@ import { MAX_SIDEBAR_TAGS, getTagColor } from "./tag-colors";
 import {
   FinderView,
   countGridColumns,
-  createHistory,
   getNextSelectionIndex,
+} from "./navigation";
+import {
+  canGoBack,
+  canGoForward,
+  createHistory,
+  currentEntry,
   pushHistory,
   stepHistory,
-} from "./navigation";
+} from "../../../lib/history";
 
 import TrashIcon from "../../../assets/icons/files/trash-full.png";
 
@@ -100,7 +105,7 @@ const Finder: React.FC<AppProps> = ({ payload, openedAt }) => {
   const itemsRef = useRef<HTMLDivElement>(null);
   const contextMenu = useContextMenu(rootRef);
 
-  const location = history.entries[history.index];
+  const location = currentEntry(history);
   const isTrash = location === "trash";
   const { username } = content.profile;
 
@@ -206,8 +211,8 @@ const Finder: React.FC<AppProps> = ({ payload, openedAt }) => {
       <div className="relative flex flex-col flex-grow min-w-0 bg-white dark:bg-[#282025]">
         <FinderToolbar
           title={getLocationTitle(location, username)}
-          canGoBack={history.index > 0}
-          canGoForward={history.index < history.entries.length - 1}
+          canGoBack={canGoBack(history)}
+          canGoForward={canGoForward(history)}
           onBack={() => step(-1)}
           onForward={() => step(1)}
           view={view}
