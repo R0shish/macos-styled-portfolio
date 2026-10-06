@@ -13,8 +13,12 @@ export const STORAGE_KEYS = {
   appearance: "appearance",
   wallpaper: "wallpaper",
   brightness: "brightness",
+  uncheckedNoteItems: "notes:unchecked",
+  fileNames: "files:names",
+  trashedFiles: "files:trashed",
 } as const;
 
 export const SESSION_KEYS = {
   booted: "booted",
+  deletedFiles: "files:deleted",
 } as const;

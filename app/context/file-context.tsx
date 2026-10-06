@@ -1,6 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { readStorage, writeStorage } from "../lib/storage";
+import { SESSION_KEYS, STORAGE_KEYS } from "../lib/constants";
 
 interface FileContextValue {
   trashed: string[];
@@ -19,9 +21,22 @@ const FileContext = createContext<FileContextValue | null>(null);
 export const FileProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [trashed, setTrashed] = useState<string[]>([]);
-  const [deleted, setDeleted] = useState<string[]>([]);
-  const [names, setNames] = useState<Record<string, string>>({});
+  const [trashed, setTrashed] = useState(() =>
+    readStorage<string[]>(STORAGE_KEYS.trashedFiles, [])
+  );
+  const [deleted, setDeleted] = useState(() =>
+    readStorage<string[]>(SESSION_KEYS.deletedFiles, [], "session")
+  );
+  const [names, setNames] = useState(() =>
+    readStorage<Record<string, string>>(STORAGE_KEYS.fileNames, {})
+  );
+
+  useEffect(() => writeStorage(STORAGE_KEYS.trashedFiles, trashed), [trashed]);
+  useEffect(
+    () => writeStorage(SESSION_KEYS.deletedFiles, deleted, "session"),
+    [deleted]
+  );
+  useEffect(() => writeStorage(STORAGE_KEYS.fileNames, names), [names]);
 
   const moveToTrash = (ids: string[]) => {
     setTrashed((prev) => [...prev.filter((id) => !ids.includes(id)), ...ids]);
