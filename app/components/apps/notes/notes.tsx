@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { cn, formatDuration, formatMonth } from "../../../lib/utils";
+import { readStorage, writeStorage } from "../../../lib/storage";
+import { STORAGE_KEYS } from "../../../lib/constants";
 import { PortfolioContent } from "../../../lib/content/schema";
 import { parseYearMonth } from "../../../lib/content/dates";
 import { useContent } from "../../../context/content-context";
 import { AppProps } from "../../../lib/apps";
 import Symbol from "../../symbol";
 import { Toolbar } from "../../window/toolbar";
+import { useWindowFocus } from "../../window/window-focus";
 
 interface Note {
   id: string;
@@ -29,6 +33,79 @@ const ExternalLink: React.FC<{ href: string; children: React.ReactNode }> = ({
     {children}
   </a>
 );
+
+const escapeRegExp = (text: string) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const Highlight: React.FC<{ text: string; query: string }> = ({
+  text,
+  query,
+}) => {
+  if (!query.trim()) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${escapeRegExp(query.trim())})`, "i"));
+  return (
+    <>
+      {parts.map((part, index) =>
+        index % 2 ? (
+          <mark
+            key={index}
+            className="bg-[#ffd52e]/70 dark:bg-[#ffd52e]/45 group-data-[selected=true]:bg-black/15 dark:group-data-[selected=true]:bg-white/20 text-inherit rounded-[2px]"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+};
+
+const readUnchecked = () =>
+  readStorage<string[]>(STORAGE_KEYS.uncheckedNoteItems, []);
+
+const ChecklistItem: React.FC<{ id: string; children: React.ReactNode }> = ({
+  id,
+  children,
+}) => {
+  const [isChecked, setIsChecked] = useState(
+    () => !readUnchecked().includes(id)
+  );
+
+  const toggle = () => {
+    const unchecked = readUnchecked().filter((other) => other !== id);
+    writeStorage(
+      STORAGE_KEYS.uncheckedNoteItems,
+      isChecked ? [...unchecked, id] : unchecked
+    );
+    setIsChecked(!isChecked);
+  };
+
+  return (
+    <li className="flex items-center gap-2">
+      <motion.button
+        role="checkbox"
+        aria-checked={isChecked}
+        aria-label={String(children)}
+        onClick={toggle}
+        initial={false}
+        animate={{ scale: isChecked ? [0.8, 1.15, 1] : [0.9, 1] }}
+        transition={{ duration: 0.25 }}
+        className={cn(
+          "w-4 h-4 rounded-full shrink-0 flex items-center justify-center transition-colors duration-150",
+          isChecked
+            ? "bg-[#ffd52e]"
+            : "ring-[1.5px] ring-inset ring-black/25 dark:ring-white/30"
+        )}
+      >
+        {isChecked && (
+          <Symbol name="checkmark" className="w-2.5 h-2.5 text-black" />
+        )}
+      </motion.button>
+      {children}
+    </li>
+  );
+};
 
 const buildNotes = ({
   profile,
@@ -124,15 +201,9 @@ const buildNotes = ({
             <h3 className="font-semibold">{group}</h3>
             <ul className="mt-1 space-y-0.5">
               {items.map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-[#ffd52e] shrink-0 flex items-center justify-center">
-                    <Symbol
-                      name="checkmark"
-                      className="w-2.5 h-2.5 text-black"
-                    />
-                  </span>
+                <ChecklistItem key={item} id={`${group}/${item}`}>
                   {item}
-                </li>
+                </ChecklistItem>
               ))}
             </ul>
           </div>
@@ -170,6 +241,7 @@ const Notes: React.FC<AppProps> = ({ payload, openedAt }) => {
   const notes = buildNotes(useContent());
   const [selectedId, setSelectedId] = useState(payload ?? notes[0].id);
   const [search, setSearch] = useState("");
+  const isFocused = useWindowFocus();
 
   useEffect(() => {
     if (payload) setSelectedId(payload);
@@ -200,16 +272,22 @@ const Notes: React.FC<AppProps> = ({ payload, openedAt }) => {
             <button
               key={note.id}
               onClick={() => setSelectedId(note.id)}
+              data-selected={selectedNote.id === note.id}
               className={cn(
-                "w-full text-left px-3 py-2 rounded-[10px] cursor-default",
-                selectedNote.id === note.id && "bg-[#ffd52e] dark:bg-[#6e5815]"
+                "group w-full text-left px-3 py-2 rounded-[10px] cursor-default",
+                selectedNote.id === note.id &&
+                  (isFocused
+                    ? "bg-[#ffd52e] dark:bg-[#6e5815]"
+                    : "bg-black/10 dark:bg-white/10")
               )}
             >
-              <div className="font-bold truncate">{note.title}</div>
+              <div className="font-bold truncate">
+                <Highlight text={note.title} query={search} />
+              </div>
               <div className="flex gap-2 text-12">
                 <span className="shrink-0">{note.date}</span>
                 <span className="truncate text-black/50 dark:text-white/50">
-                  {note.preview}
+                  <Highlight text={note.preview} query={search} />
                 </span>
               </div>
             </button>
@@ -223,7 +301,7 @@ const Notes: React.FC<AppProps> = ({ payload, openedAt }) => {
       </aside>
       <article className="flex-grow flex flex-col min-w-0 bg-white dark:bg-[#1e1e1e]">
         <Toolbar />
-        <div className="selectable flex-grow overflow-y-auto px-6 sm:px-12 pb-8">
+        <div className="selectable flex-grow overflow-y-auto px-6 sm:px-12 pb-8 selection:bg-[#ffd52e]/45">
           <div className="text-center text-12 text-black/40 dark:text-white/40 mb-4">
             {selectedNote.date}
           </div>
