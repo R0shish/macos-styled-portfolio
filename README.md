@@ -23,17 +23,18 @@ That's it. Every app reads from that file — nothing personal is hardcoded in t
 
 The shape of the file is defined by `PortfolioContent` in [`app/lib/content/types.ts`](app/lib/content/types.ts).
 
-| Field               | Used by                                                                     |
-| ------------------- | --------------------------------------------------------------------------- |
-| `site`              | Browser tab title and description                                           |
-| `profile`           | Contacts card, Notes, Terminal, menu bar, Mail, lock screen                 |
-| `profile.links`     | Any link left out is hidden everywhere (`repository` → VS Code in the dock) |
-| `experiences`       | Notes, Terminal `experience`, Spotlight                                     |
-| `projects`          | Finder (tags become sidebar tags), Spotlight, Terminal                      |
-| `awards`, `skills`  | Notes, Terminal                                                             |
-| `system.wallpapers` | System Settings → Wallpaper (`src` image or CSS `gradient`)                 |
-| `system.default*`   | First-visit appearance and wallpaper                                        |
-| `system.hostname`   | Terminal prompt                                                             |
+| Field                     | Used by                                                                     |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `site`                    | Browser tab title and description                                           |
+| `profile`                 | Contacts card, Notes, Terminal, menu bar, Mail, lock screen                 |
+| `profile.links`           | Any link left out is hidden everywhere (`repository` → VS Code in the dock) |
+| `experiences`             | Notes, Terminal `experience`, Spotlight                                     |
+| `projects`                | Finder (tags become sidebar tags), Spotlight, Terminal                      |
+| `awards`, `skills`        | Notes, Terminal                                                             |
+| `system.wallpapers`       | System Settings → Wallpaper (`src` image or CSS `gradient`)                 |
+| `system.default*`         | First-visit appearance and wallpaper                                        |
+| `system.hostname`         | Terminal prompt                                                             |
+| `system.browser.homepage` | Safari's start page (falls back to `profile.links.website`)                 |
 
 Dates use `YYYY-MM` (leave `end` out for a current role).
 
