@@ -1,56 +1,149 @@
-import React from "react";
+"use client";
+
+import React, { useRef, useState } from "react";
 import DateTimeDisplay from "./date-time-display";
-import Image from "next/image";
-
-import AppleLogo from "../../assets/icons/apple.png";
-import SearchLogo from "../../assets/icons/search.svg";
-import ControlCenterLogo from "../../assets/icons/control-center.svg";
-
-const menuItems: string[] = ["File", "Edit", "View", "Go", "Window", "Help"];
+import MenuDropdown from "./menu-dropdown";
+import { useMenus } from "./use-menus";
+import ControlCenter from "./control-center";
+import { BatteryStatus } from "./status-icons";
+import Symbol from "../symbol";
+import { useWindows } from "../../context/window-context";
+import { useSystem } from "../../context/system-context";
+import { useOverlays } from "../../context/overlay-context";
+import { useClickOutside } from "../../hooks/use-click-outside";
+import { useContent } from "../../context/content-context";
+import { cn } from "../../lib/utils";
+import { MENUBAR_HEIGHT } from "../../lib/constants";
 
 interface MenuItemProps {
-  label: string;
+  label: React.ReactNode;
+  isOpen: boolean;
+  className?: string;
+  onClick: () => void;
+  onHover: () => void;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ label }) => (
-  <div className="cursor-default px-1 py-1 rounded">{label}</div>
+const MenuItem: React.FC<MenuItemProps> = ({
+  label,
+  isOpen,
+  className,
+  onClick,
+  onHover,
+}) => (
+  <button
+    aria-haspopup="menu"
+    aria-expanded={isOpen}
+    className={cn(
+      "h-6 px-2.5 flex items-center rounded-full",
+      isOpen && "bg-white/20",
+      className
+    )}
+    onClick={onClick}
+    onMouseEnter={onHover}
+  >
+    {label}
+  </button>
 );
+
 const Menubar: React.FC = () => {
+  const { fullscreenId } = useWindows();
+  const { wallpaper } = useSystem();
+  const { setSpotlightOpen } = useOverlays();
+  const { system } = useContent();
+  const isLightWallpaper = !!system.wallpapers.find((w) => w.id === wallpaper)
+    ?.isLight;
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const isHidden = !!fullscreenId && !isRevealed && !openMenu;
+  const menubarRef = useRef<HTMLElement>(null);
+
+  useClickOutside(menubarRef, () => setOpenMenu(null), openMenu !== null);
+
+  const menus = useMenus();
+
   return (
-    <nav className="flex justify-between items-center bg-blue-100 text-sm text-black">
-      <div className="flex space-x-4 items-center">
-        <Image
-          className="ml-6 mr-1"
-          src={AppleLogo}
-          alt="apple"
-          width={13}
-          height={13}
+    <>
+      {fullscreenId && (
+        <div
+          className="fixed inset-x-0 top-0 h-1.5"
+          onMouseEnter={() => setIsRevealed(true)}
         />
-        <div className="font-bold cursor-default">Finder</div>
-        {menuItems.map((item) => (
-          <MenuItem key={item} label={item} />
-        ))}
-      </div>
-      <div className="flex space-x-2 items-center mr-5">
-        <div className="flex">
-          <Image
-            className="mx-2"
-            src={SearchLogo}
-            alt="control center"
-            width={16}
-            height={16}
-          />
-          <Image
-            className="mx-2"
-            src={ControlCenterLogo}
-            alt="control center"
-            width={16}
-            height={16}
-          />
+      )}
+      <nav
+        ref={menubarRef}
+        onMouseLeave={() => setIsRevealed(false)}
+        style={{ height: MENUBAR_HEIGHT }}
+        className={cn(
+          "flex justify-between items-center text-13 font-medium transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          fullscreenId
+            ? "bg-[#ececec]/90 dark:bg-[#1e1e1e]/90 backdrop-blur-2xl text-black dark:text-white"
+            : isLightWallpaper
+              ? "text-black"
+              : "text-white [text-shadow:0_0_8px_rgba(0,0,0,0.25)]",
+          isHidden && "-translate-y-full"
+        )}
+      >
+        <div className="flex items-center h-full pl-2.5">
+          {menus.map((menu) => (
+            <div
+              key={menu.id}
+              className={cn(
+                "relative",
+                !["apple", "app"].includes(menu.id) && "hidden md:block"
+              )}
+            >
+              <MenuItem
+                label={menu.label}
+                isOpen={openMenu === menu.id}
+                className={menu.id === "apple" ? "px-3.5" : undefined}
+                onClick={() =>
+                  setOpenMenu(openMenu === menu.id ? null : menu.id)
+                }
+                onHover={() => openMenu && setOpenMenu(menu.id)}
+              />
+              {openMenu === menu.id && (
+                <MenuDropdown
+                  entries={menu.entries}
+                  onClose={() => setOpenMenu(null)}
+                />
+              )}
+            </div>
+          ))}
         </div>
-        <DateTimeDisplay />
-      </div>
-    </nav>
+        <div className="flex items-center h-full mr-2.5 gap-0.5">
+          <BatteryStatus />
+          <MenuItem
+            isOpen={false}
+            onClick={() => {
+              setOpenMenu(null);
+              setSpotlightOpen(true);
+            }}
+            onHover={() => {}}
+            label={
+              <Symbol name="magnifyingglass" className="w-[15px] h-[15px]" />
+            }
+          />
+          <div className="relative">
+            <MenuItem
+              isOpen={openMenu === "control-center"}
+              onClick={() =>
+                setOpenMenu(
+                  openMenu === "control-center" ? null : "control-center"
+                )
+              }
+              onHover={() => openMenu && setOpenMenu("control-center")}
+              label={<Symbol name="switch-2" className="w-[17px] h-[15px]" />}
+            />
+            {openMenu === "control-center" && (
+              <ControlCenter onClose={() => setOpenMenu(null)} />
+            )}
+          </div>
+          <div className="flex gap-2 px-2.5">
+            <DateTimeDisplay />
+          </div>
+        </div>
+      </nav>
+    </>
   );
 };
 
