@@ -1,283 +1,174 @@
 "use client";
 
-import Draggable, { DraggableEventHandler } from "react-draggable";
-import React, { memo, useState, useEffect, useRef, useCallback } from "react";
-import { FaTimes, FaMinus, FaExpandAlt } from "react-icons/fa";
+import Draggable from "react-draggable";
+import React, { memo, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { App } from "../../lib/apps";
+import { MENUBAR_HEIGHT } from "../../lib/constants";
+import { WindowState, useWindows } from "../../context/window-context";
+import { cn } from "../../lib/utils";
+import { WindowFocusContext } from "./window-focus";
+import { useWindowFrame } from "./use-window-frame";
+import { useDockTarget } from "./use-dock-target";
+import WindowControls from "./window-controls";
+import ResizeHandles from "./resize-handles";
+import AppErrorBoundary from "./app-error-boundary";
+
+const DEFAULT_MIN_SIZE = { width: 200, height: 200 };
+const OFFSCREEN_MARGIN = 80;
 
 interface WindowProps {
-  defaultPosition?: { x: number; y: number };
-  onStop?: DraggableEventHandler;
+  app: App;
+  state: WindowState;
+  index: number;
+  isFocused: boolean;
+  isHidden: boolean;
+  children: React.ReactNode;
 }
 
-type ResizeDirection =
-  | "n"
-  | "s"
-  | "e"
-  | "w"
-  | "ne"
-  | "nw"
-  | "se"
-  | "sw"
-  | "nil";
+const isInside = (target: EventTarget, selector: string) =>
+  (target as HTMLElement).closest(selector) !== null;
 
 const Window: React.FC<WindowProps> = ({
-  defaultPosition = { x: 650, y: 200 },
-  onStop,
+  app,
+  state,
+  index,
+  isFocused,
+  isHidden,
+  children,
 }) => {
-  const [size, setSize] = useState({ width: 384, height: 384 });
-  const [position, setPosition] = useState(defaultPosition);
-  const [resizeDirection, setResizeDirection] =
-    useState<ResizeDirection>("nil");
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
+  const { closeApp, minimizeApp, focusApp, toggleMaximize, toggleFullscreen } =
+    useWindows();
   const windowRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleResize = useCallback(() => {
-    if (windowRef.current) {
-      const { width, height, right, bottom } =
-        windowRef.current.getBoundingClientRect();
-      const maxWidth = window.innerWidth - position.x - 20;
-      const maxHeight = window.innerHeight - position.y - 20;
-
-      setSize({
-        width: Math.min(width, maxWidth),
-        height: Math.min(height, maxHeight),
-      });
-
-      if (right > window.innerWidth) {
-        setPosition((prev) => ({ ...prev, x: window.innerWidth - width - 20 }));
-      }
-      if (bottom > window.innerHeight) {
-        setPosition((prev) => ({
-          ...prev,
-          y: window.innerHeight - height - 20,
-        }));
-      }
-    }
-  }, [position.x, position.y]);
-
-  useEffect(() => {
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [handleResize]);
-
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!windowRef.current || !resizeDirection) return;
-
-      const { left, top, right, bottom } =
-        windowRef.current.getBoundingClientRect();
-      const minSize = 200;
-      const maxWidth = window.innerWidth - position.x - 20;
-      const maxHeight = window.innerHeight - position.y - 20;
-
-      let newWidth = size.width;
-      let newHeight = size.height;
-      let newX = position.x;
-      let newY = position.y;
-
-      if (resizeDirection.includes("e")) {
-        newWidth = Math.max(minSize, Math.min(e.clientX - left, maxWidth));
-      }
-      if (resizeDirection.includes("w")) {
-        const diff = left - e.clientX;
-        newWidth = Math.max(
-          minSize,
-          Math.min(size.width + diff, right - e.clientX)
-        );
-        newX = Math.max(0, position.x - diff);
-      }
-      if (resizeDirection.includes("s")) {
-        newHeight = Math.max(minSize, Math.min(e.clientY - top, maxHeight));
-      }
-      if (resizeDirection.includes("n")) {
-        const diff = top - e.clientY;
-        newHeight = Math.max(
-          minSize,
-          Math.min(size.height + diff, bottom - e.clientY)
-        );
-        newY = Math.max(0, position.y - diff);
-      }
-
-      setSize({ width: newWidth, height: newHeight });
-      setPosition({ x: newX, y: newY });
-    },
-    [resizeDirection, size, position]
+  const { frame, moveTo, isTransitioning, isResizing, startResize } =
+    useWindowFrame({
+      preferredSize: app.size,
+      minSize: app.minSize ?? DEFAULT_MIN_SIZE,
+      cascadeIndex: index,
+      isMaximized: state.isMaximized,
+      isFullscreen: state.isFullscreen,
+    });
+  const dockTarget = useDockTarget(
+    [`minimized-${app.id}`, app.id],
+    frame,
+    state.isMinimized
   );
 
-  const handleMouseUp = useCallback(() => {
-    setResizeDirection("nil");
-  }, []);
-
-  useEffect(() => {
-    if (resizeDirection != "nil") {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-    } else {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [resizeDirection, handleMouseMove, handleMouseUp]);
-
-  const resizeHandlers: Record<ResizeDirection, string> = {
-    n: "cursor-ns-resize",
-    s: "cursor-ns-resize",
-    e: "cursor-ew-resize",
-    w: "cursor-ew-resize",
-    ne: "cursor-nesw-resize",
-    nw: "cursor-nwse-resize",
-    se: "cursor-nwse-resize",
-    sw: "cursor-nesw-resize",
-    nil: "",
-  };
+  const blocksPointer =
+    isDragging || isResizing || (!isFocused && app.embedsContent);
 
   return (
     <Draggable
       axis="both"
       handle=".handle"
-      position={position}
+      disabled={state.isFullscreen}
+      cancel="button, input, textarea, a, .window-controls"
+      nodeRef={windowRef}
+      position={frame.position}
       bounds={{
         top: 0,
+        left: OFFSCREEN_MARGIN - frame.size.width,
+        right: window.innerWidth - OFFSCREEN_MARGIN,
+        bottom: window.innerHeight - MENUBAR_HEIGHT - 60,
       }}
-      onStop={(e, data) => {
-        setPosition({ x: data.x, y: data.y });
-        onStop && onStop(e, data);
+      onStart={() => focusApp(app.id)}
+      onDrag={() => setIsDragging(true)}
+      onStop={(_, data) => {
+        setIsDragging(false);
+        moveTo({ x: data.x, y: data.y });
       }}
     >
       <div
         ref={windowRef}
-        className={`bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden flex flex-col relative ${
-          isTransitioning ? "transition-all duration-300 ease-in-out" : ""
-        }`}
-        style={{ width: `${size.width}px`, height: `${size.height}px` }}
+        role="dialog"
+        aria-label={app.title}
+        className={cn(
+          "absolute top-0 left-0",
+          isTransitioning &&
+            "transition-[width,height,transform] duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
+          state.isMinimized || isHidden
+            ? "pointer-events-none"
+            : "pointer-events-auto",
+          isHidden && "invisible"
+        )}
+        style={{
+          width: frame.size.width,
+          height: frame.size.height,
+          zIndex: state.zIndex,
+        }}
+        onMouseDownCapture={() => focusApp(app.id)}
+        onContextMenu={(e) => {
+          if (!isInside(e.target, "input, textarea, .selectable"))
+            e.preventDefault();
+        }}
       >
-        <WindowTitleBar
-          onMaximize={() => {
-            setIsTransitioning(true);
-            if (
-              size.height === window.innerHeight - 30 &&
-              size.width === window.innerWidth
-            ) {
-              setSize({ width: 384, height: 384 });
-              setPosition(defaultPosition);
-            } else {
-              setPosition({ x: 0, y: 0 });
-              setSize({
-                width: window.innerWidth,
-                height: window.innerHeight - 30,
-              });
-            }
-            setTimeout(() => setIsTransitioning(false), 300);
+        <motion.div
+          className={cn(
+            "h-full w-full bg-[#e8e6ea]/75 dark:bg-[#3a3039]/70 backdrop-blur-3xl backdrop-saturate-150 rounded-[26px] overflow-hidden flex flex-col relative text-13 text-black/85 dark:text-white/90 ring-[0.5px] ring-black/40 transition-shadow duration-200",
+            "after:absolute after:inset-0 after:rounded-[inherit] after:pointer-events-none after:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)] dark:after:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.13)]",
+            isFocused
+              ? "shadow-[0_30px_80px_rgba(0,0,0,0.55),0_0_0_0.5px_rgba(0,0,0,0.6)]"
+              : "shadow-[0_14px_36px_rgba(0,0,0,0.35)]",
+            state.isFullscreen &&
+              "rounded-none after:rounded-none shadow-none ring-0"
+          )}
+          style={{ transformOrigin: "bottom center" }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={
+            state.isMinimized
+              ? {
+                  opacity: 0,
+                  ...dockTarget,
+                  transition: { duration: 0.42, ease: [0.4, 0, 0.2, 1] },
+                }
+              : { opacity: 1, scale: 1, x: 0, y: 0 }
+          }
+          exit={{
+            opacity: 0,
+            scale: 0.97,
+            transition: { duration: 0.16, ease: "easeIn" },
           }}
-          onClose={() => console.log("close")}
-          onMinimize={() => console.log("minimize")}
-        />
-        <div className="flex-grow" />
-        {(Object.keys(resizeHandlers) as ResizeDirection[]).map(
-          (direction) =>
-            direction && (
-              <div
-                key={direction}
-                className={`absolute ${resizeHandlers[direction]}`}
-                style={{
-                  ...(direction.includes("n") && {
-                    top: "-5px",
-                    height: "10px",
-                  }),
-                  ...(direction.includes("s") && {
-                    bottom: "-5px",
-                    height: "10px",
-                  }),
-                  ...(direction.includes("e") && {
-                    right: "-5px",
-                    width: "10px",
-                  }),
-                  ...(direction.includes("w") && {
-                    left: "-5px",
-                    width: "10px",
-                  }),
-                  ...(direction.length === 1 && { width: "100%" }),
-                  ...(direction.length === 2 && { height: "100%" }),
-                }}
-                onMouseDown={() => setResizeDirection(direction)}
-              />
-            )
+          transition={{ type: "spring", stiffness: 420, damping: 38 }}
+        >
+          <WindowControls
+            isFocused={isFocused}
+            isFullscreen={state.isFullscreen}
+            onFullscreen={(e) =>
+              e.altKey ? toggleMaximize(app.id) : toggleFullscreen(app.id)
+            }
+            onClose={() => closeApp(app.id)}
+            onMinimize={() => minimizeApp(app.id)}
+          />
+          <div
+            className="flex-grow min-h-0 relative"
+            onDoubleClick={(e) => {
+              if (
+                !state.isFullscreen &&
+                isInside(e.target, ".handle") &&
+                !isInside(e.target, "button, input")
+              )
+                toggleMaximize(app.id);
+            }}
+          >
+            <WindowFocusContext.Provider value={isFocused}>
+              <AppErrorBoundary
+                appName={app.name}
+                onClose={() => closeApp(app.id)}
+              >
+                {children}
+              </AppErrorBoundary>
+            </WindowFocusContext.Provider>
+            {blocksPointer && <div className="absolute inset-0" />}
+          </div>
+        </motion.div>
+        {!state.isMaximized && !state.isFullscreen && (
+          <ResizeHandles onResizeStart={startResize} />
         )}
       </div>
     </Draggable>
   );
 };
-
-type WindowTitleBarProps = {
-  onClose: () => void;
-  onMinimize: () => void;
-  onMaximize: () => void;
-};
-
-const WindowTitleBar: React.FC<WindowTitleBarProps> = memo(
-  ({ onClose, onMinimize, onMaximize }) => {
-    const [isHovered, setIsHovered] = useState(false);
-
-    return (
-      <div
-        className="handle h-8 bg-gray-200 dark:bg-gray-700 rounded-t-xl flex items-center justify-between px-2"
-        onDoubleClick={onMaximize}
-      >
-        <div
-          className="flex"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <WindowControlButton
-            color="bg-red-500"
-            isHovered={isHovered}
-            icon={<FaTimes className="text-black w-2 h-2" />}
-            onClick={onClose}
-          />
-          <WindowControlButton
-            color="bg-yellow-500"
-            isHovered={isHovered}
-            icon={<FaMinus className="text-black w-2 h-2" />}
-            onClick={onMinimize}
-          />
-          <WindowControlButton
-            color="bg-green-500"
-            isHovered={isHovered}
-            onClick={onMaximize}
-            icon={<FaExpandAlt className="text-black w-2 h-2" />}
-          />
-        </div>
-      </div>
-    );
-  }
-);
-
-interface WindowControlButtonProps {
-  color: string;
-  icon: React.ReactNode;
-  isHovered?: boolean;
-  onClick: () => void;
-}
-
-const WindowControlButton: React.FC<WindowControlButtonProps> = memo(
-  ({ color, icon, isHovered, onClick }) => {
-    return (
-      <div
-        className={`w-3 h-3 ${color} rounded-full mr-2 last:mr-0 flex items-center justify-center transition-colors duration-200 z-99`}
-        onClick={onClick}
-      >
-        {isHovered && icon}
-      </div>
-    );
-  }
-);
-
-WindowTitleBar.displayName = "WindowTitleBar";
-WindowControlButton.displayName = "WindowControlButton";
-Window.displayName = "Window";
 
 export default memo(Window);
