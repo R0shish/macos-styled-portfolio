@@ -1,23 +1,27 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { AppProps } from "../../../lib/apps";
 import { useContent } from "../../../context/content-context";
-import {
-  canGoBack,
-  canGoForward,
-  createHistory,
-  currentEntry,
-  pushHistory,
-  stepHistory,
-} from "../../../lib/history";
+import { useNotifications } from "../../../context/notification-context";
+import { canGoBack, canGoForward } from "../../../lib/history";
 import { canEmbed, getHost, toUrl } from "../../../lib/browser";
 import { PortfolioContent } from "../../../lib/content/schema";
 import { useWindowFocus } from "../../window/window-focus";
-import { Toolbar, ToolbarButton, ToolbarGroup } from "../../window/toolbar";
-import AddressBar from "./address-bar";
+import SafariToolbar from "./safari-toolbar";
+import TabBar from "./tab-bar";
+import TabOverview from "./tab-overview";
+import BookmarksSidebar from "./bookmarks-sidebar";
 import StartPage, { START_PAGE } from "./start-page";
 import BlockedPage from "./blocked-page";
+import { getFavorites } from "./favorites";
+import {
+  BrowserTab,
+  createTabs,
+  selectActiveTab,
+  tabUrl,
+  tabsReducer,
+} from "./tabs";
 
 const FALLBACK_HOMEPAGE = "https://en.wikipedia.org";
 
@@ -35,13 +39,21 @@ const isEmbeddedInAnotherPage = () => {
 const openInNewTab = (url: string) =>
   window.open(url, "_blank", "noopener,noreferrer");
 
+const frameKey = (tab: BrowserTab) =>
+  `${tab.id}-${tabUrl(tab)}-${tab.reloadKey}`;
+
 const Safari: React.FC<AppProps> = ({ payload, openedAt }) => {
   const content = useContent();
-  const homepage = getHomepage(content);
+  const { notify } = useNotifications();
   const isFocused = useWindowFocus();
+  const homepage = getHomepage(content);
+  const favorites = useMemo(
+    () => getFavorites(content, homepage),
+    [content, homepage]
+  );
 
-  const [history, setHistory] = useState(() =>
-    createHistory(
+  const [state, dispatch] = useReducer(tabsReducer, null, () =>
+    createTabs(
       payload
         ? toUrl(payload)
         : isEmbeddedInAnotherPage()
@@ -49,39 +61,63 @@ const Safari: React.FC<AppProps> = ({ payload, openedAt }) => {
           : homepage
     )
   );
-  const [isLoading, setIsLoading] = useState(true);
-  const [reloadKey, setReloadKey] = useState(0);
+  const [loaded, setLoaded] = useState<Set<string>>(() => new Set());
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isShowingTabs, setIsShowingTabs] = useState(false);
   const addressRef = useRef<HTMLInputElement>(null);
+  const hasMounted = useRef(false);
 
-  const url = currentEntry(history);
+  const activeTab = selectActiveTab(state);
+  const url = tabUrl(activeTab);
   const isStartPage = url === START_PAGE;
-  const isEmbeddable = !isStartPage && canEmbed(url);
+  const isLoading =
+    !isStartPage && canEmbed(url) && !loaded.has(frameKey(activeTab));
 
   const navigate = (input: string) => {
     const next = input === START_PAGE ? START_PAGE : toUrl(input);
-    if (next) setHistory((current) => pushHistory(current, next));
+    if (next) dispatch({ type: "navigate", url: next });
+  };
+
+  const openTab = (input = START_PAGE) => {
+    dispatch({
+      type: "open",
+      url: input === START_PAGE ? START_PAGE : toUrl(input),
+    });
+    setIsShowingTabs(false);
+  };
+
+  const markLoaded = (key: string) =>
+    setLoaded((current) => new Set(current).add(key));
+
+  const share = async () => {
+    if (navigator.share) {
+      await navigator.share({ url }).catch(() => undefined);
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    notify("Link Copied", url);
   };
 
   useEffect(() => {
-    if (payload) navigate(payload);
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    if (payload) openTab(payload);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payload, openedAt]);
-
-  useEffect(() => {
-    setIsLoading(isEmbeddable);
-  }, [url, reloadKey, isEmbeddable]);
 
   useEffect(() => {
     if (!isFocused) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey && e.key === "l") {
+      if (!e.metaKey) return;
+      if (e.key === "l") {
         e.preventDefault();
         addressRef.current?.focus();
-      }
-      if (e.metaKey && e.key === "r") {
+      } else if (e.key === "r") {
         e.preventDefault();
-        setReloadKey((key) => key + 1);
+        dispatch({ type: "reload" });
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -90,71 +126,95 @@ const Safari: React.FC<AppProps> = ({ payload, openedAt }) => {
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-[#282025]">
-      <Toolbar
-        hasControls
-        leading={
-          <ToolbarGroup>
-            <ToolbarButton
-              symbol="chevron-left"
-              title="Back"
-              disabled={!canGoBack(history)}
-              onClick={() => setHistory((current) => stepHistory(current, -1))}
-            />
-            <div className="w-px h-4 bg-black/10 dark:bg-white/15" />
-            <ToolbarButton
-              symbol="chevron-right"
-              title="Forward"
-              disabled={!canGoForward(history)}
-              onClick={() => setHistory((current) => stepHistory(current, 1))}
-            />
-          </ToolbarGroup>
-        }
-        trailing={
-          <>
-            <AddressBar
-              ref={addressRef}
-              url={isStartPage ? "" : url}
-              isLoading={isLoading}
-              onSubmit={navigate}
-              onReload={() => setReloadKey((key) => key + 1)}
-              onStop={() => setIsLoading(false)}
-            />
-            <ToolbarGroup className="px-0.5">
-              <ToolbarButton
-                symbol="arrow-up-forward-square"
-                title="Open in New Tab"
-                disabled={isStartPage}
-                onClick={() => openInNewTab(url)}
-              />
-            </ToolbarGroup>
-          </>
-        }
+      <SafariToolbar
+        addressRef={addressRef}
+        url={isStartPage ? "" : url}
+        isLoading={isLoading}
+        canGoBack={canGoBack(activeTab.history)}
+        canGoForward={canGoForward(activeTab.history)}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen((isOpen) => !isOpen)}
+        onBack={() => dispatch({ type: "step", direction: -1 })}
+        onForward={() => dispatch({ type: "step", direction: 1 })}
+        onNavigate={navigate}
+        onReload={() => dispatch({ type: "reload" })}
+        onStop={() => markLoaded(frameKey(activeTab))}
+        onShare={share}
+        onNewTab={() => openTab()}
+        onShowTabs={() => setIsShowingTabs((isShowing) => !isShowing)}
       />
 
-      <div className="relative flex-grow min-h-0">
-        {isLoading && (
-          <div
-            aria-hidden
-            className="absolute inset-x-0 top-0 h-[2px] z-10 overflow-hidden"
-          >
-            <div className="h-full w-1/3 bg-[#0a84ff] animate-[safari-progress_1.2s_ease-in-out_infinite]" />
-          </div>
+      {state.tabs.length > 1 && (
+        <TabBar
+          tabs={state.tabs}
+          activeId={state.activeId}
+          onSelect={(id) => dispatch({ type: "select", id })}
+          onClose={(id) => dispatch({ type: "close", id })}
+        />
+      )}
+
+      <div className="relative flex flex-grow min-h-0">
+        {isSidebarOpen && (
+          <BookmarksSidebar
+            favorites={favorites}
+            currentUrl={url}
+            onOpen={navigate}
+          />
         )}
 
-        {isStartPage ? (
-          <StartPage homepage={homepage} onOpen={navigate} />
-        ) : isEmbeddable ? (
-          <iframe
-            key={`${url}-${reloadKey}`}
-            src={url}
-            title={getHost(url)}
-            onLoad={() => setIsLoading(false)}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
-            referrerPolicy="strict-origin-when-cross-origin"
-            className="w-full h-full bg-white"
+        <div className="relative flex-grow min-w-0">
+          {isLoading && (
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-0 h-[2px] z-10 overflow-hidden"
+            >
+              <div className="h-full w-1/3 bg-[#0a84ff] animate-[safari-progress_1.2s_ease-in-out_infinite]" />
+            </div>
+          )}
+
+          {state.tabs.map((tab) => {
+            const tabAddress = tabUrl(tab);
+            const isActive = tab.id === state.activeId;
+            return (
+              <div
+                key={tab.id}
+                className={isActive ? "absolute inset-0" : "hidden"}
+              >
+                {tabAddress === START_PAGE ? (
+                  <StartPage favorites={favorites} onOpen={navigate} />
+                ) : canEmbed(tabAddress) ? (
+                  <iframe
+                    key={frameKey(tab)}
+                    src={tabAddress}
+                    title={getHost(tabAddress)}
+                    onLoad={() => markLoaded(frameKey(tab))}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    className="w-full h-full bg-white"
+                  />
+                ) : (
+                  <BlockedPage
+                    host={getHost(tabAddress)}
+                    onOpen={() => openInNewTab(tabAddress)}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {isShowingTabs && (
+          <TabOverview
+            tabs={state.tabs}
+            activeId={state.activeId}
+            onSelect={(id) => {
+              dispatch({ type: "select", id });
+              setIsShowingTabs(false);
+            }}
+            onClose={(id) => dispatch({ type: "close", id })}
+            onNewTab={() => openTab()}
+            onDismiss={() => setIsShowingTabs(false)}
           />
-        ) : (
-          <BlockedPage host={getHost(url)} onOpen={() => openInNewTab(url)} />
         )}
       </div>
     </div>

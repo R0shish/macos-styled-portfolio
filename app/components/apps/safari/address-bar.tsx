@@ -25,8 +25,8 @@ const AddressBar = forwardRef<HTMLInputElement, AddressBarProps>(
       <form
         role="search"
         className={cn(
-          "relative flex items-center flex-grow max-w-[560px] h-9 rounded-full px-3 gap-1.5 bg-black/[0.05] dark:bg-white/[0.08]",
-          isEditing && "ring-[3px] ring-[#0a84ff]/50"
+          "relative flex items-center w-full max-w-[480px] h-9 rounded-full px-3 gap-2 bg-black/[0.05] dark:bg-white/[0.08] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.08)]",
+          isEditing && "ring-[3px] ring-[#0a84ff]/60"
         )}
         onSubmit={(e) => {
           e.preventDefault();
@@ -34,8 +34,15 @@ const AddressBar = forwardRef<HTMLInputElement, AddressBarProps>(
           (document.activeElement as HTMLElement | null)?.blur();
         }}
       >
-        {!isEditing && url && isSecure(url) && (
-          <Symbol name="lock-fill" className="w-3 h-3 opacity-50" />
+        {isEditing || !url ? (
+          <Symbol
+            name="magnifyingglass"
+            className="w-3.5 h-3.5 shrink-0 opacity-50"
+          />
+        ) : (
+          isSecure(url) && (
+            <Symbol name="lock-fill" className="w-3 h-3 shrink-0 opacity-50" />
+          )
         )}
         <input
           ref={ref}
@@ -68,8 +75,8 @@ const AddressBar = forwardRef<HTMLInputElement, AddressBarProps>(
             e.currentTarget.blur();
           }}
           className={cn(
-            "flex-grow min-w-0 bg-transparent outline-none text-13 placeholder:text-black/40 dark:placeholder:text-white/40",
-            !isEditing && "text-center"
+            "flex-grow min-w-0 bg-transparent outline-none text-14 placeholder:text-black/45 dark:placeholder:text-white/45",
+            !isEditing && url && "text-center"
           )}
         />
         {url && !isEditing && (
