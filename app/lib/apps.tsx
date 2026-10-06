@@ -12,9 +12,17 @@ const Preview = lazyApp(() => import("../components/apps/preview/preview"));
 const Mail = lazyApp(() => import("../components/apps/mail/mail"));
 const Settings = lazyApp(() => import("../components/apps/settings/settings"));
 const About = lazyApp(() => import("../components/apps/about/about"));
+const Safari = lazyApp(() => import("../components/apps/safari/safari"));
 
 export type AppId =
-  "finder" | "about" | "notes" | "terminal" | "preview" | "mail" | "settings";
+  | "finder"
+  | "safari"
+  | "about"
+  | "notes"
+  | "terminal"
+  | "preview"
+  | "mail"
+  | "settings";
 
 export interface AppProps {
   payload?: string;
@@ -33,6 +41,16 @@ export interface App {
 }
 
 export const apps: App[] = [
+  {
+    id: "safari",
+    name: "Safari",
+    title: "Safari",
+    icon: icons.safari,
+    size: { width: 1040, height: 700 },
+    minSize: { width: 480, height: 320 },
+    embedsContent: true,
+    component: Safari,
+  },
   {
     id: "finder",
     name: "Finder",

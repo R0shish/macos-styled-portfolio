@@ -244,6 +244,9 @@
     "welcome": {
       "title": "Welcome 👋",
       "body": "Double-click an icon to open it, or press ⌘K to search."
+    },
+    "browser": {
+      "homepage": "https://rosh.sh"
     }
   }
 }

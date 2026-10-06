@@ -12,6 +12,7 @@ import TrashFullIcon from "../../assets/icons/files/trash-full.png";
 
 const PINNED_APPS: AppId[] = [
   "finder",
+  "safari",
   "about",
   "notes",
   "terminal",
