@@ -1,0 +1,240 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { cn, formatDuration, formatMonth } from "../../../lib/utils";
+import { PortfolioContent } from "../../../lib/content/schema";
+import { parseYearMonth } from "../../../lib/content/dates";
+import { useContent } from "../../../context/content-context";
+import { AppProps } from "../../../lib/apps";
+import Symbol from "../../symbol";
+import { Toolbar } from "../../window/toolbar";
+
+interface Note {
+  id: string;
+  title: string;
+  date: string;
+  preview: string;
+  content: React.ReactNode;
+}
+
+const ExternalLink: React.FC<{ href: string; children: React.ReactNode }> = ({
+  href,
+  children,
+}) => (
+  <a
+    href={href}
+    target="_blank"
+    className="text-[#b8860b] dark:text-[#ffd52e] underline underline-offset-2"
+  >
+    {children}
+  </a>
+);
+
+const buildNotes = ({
+  profile,
+  experiences,
+  skills,
+  awards,
+}: PortfolioContent): Note[] => [
+  {
+    id: "hello",
+    title: "Hello 👋",
+    date: "Pinned",
+    preview: profile.summary,
+    content: (
+      <>
+        <p>
+          I&apos;m {profile.name}. {profile.summary}
+        </p>
+        {profile.intro.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+        <p>
+          Say hi at{" "}
+          <ExternalLink href={`mailto:${profile.email}`}>
+            {profile.email}
+          </ExternalLink>
+          {profile.links.github && (
+            <>
+              {" "}
+              or find me on{" "}
+              <ExternalLink href={profile.links.github}>GitHub</ExternalLink>
+            </>
+          )}
+          {profile.links.linkedin && (
+            <>
+              {" "}
+              and{" "}
+              <ExternalLink href={profile.links.linkedin}>
+                LinkedIn
+              </ExternalLink>
+            </>
+          )}
+          .
+        </p>
+      </>
+    ),
+  },
+  ...experiences.map((experience) => ({
+    id: experience.id,
+    title: experience.company,
+    date: formatMonth(parseYearMonth(experience.start)),
+    preview: experience.role,
+    content: (
+      <>
+        <p className="text-neutral-500 dark:text-neutral-400">
+          {experience.role} · {formatMonth(parseYearMonth(experience.start))} –{" "}
+          {formatMonth(parseYearMonth(experience.end))} (
+          {formatDuration(
+            parseYearMonth(experience.start),
+            parseYearMonth(experience.end)
+          )}
+          )
+        </p>
+        <p>{experience.description}</p>
+        {experience.projects.length > 0 && (
+          <>
+            <h3 className="font-semibold">Projects</h3>
+            <ul className="list-disc pl-5">
+              {experience.projects.map((project) => (
+                <li key={project}>{project}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        {experience.link && (
+          <p>
+            <ExternalLink href={experience.link}>
+              {experience.link.replace(/https?:\/\/(www\.)?/, "")}
+            </ExternalLink>
+          </p>
+        )}
+      </>
+    ),
+  })),
+  {
+    id: "skills",
+    title: "Skills",
+    date: "Always learning",
+    preview: Object.values(skills).flat().slice(0, 4).join(", "),
+    content: (
+      <>
+        {Object.entries(skills).map(([group, items]) => (
+          <div key={group}>
+            <h3 className="font-semibold">{group}</h3>
+            <ul className="mt-1 space-y-0.5">
+              {items.map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-[#ffd52e] shrink-0 flex items-center justify-center">
+                    <Symbol
+                      name="checkmark"
+                      className="w-2.5 h-2.5 text-black"
+                    />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </>
+    ),
+  },
+  {
+    id: "awards",
+    title: "Honors & Awards",
+    date: awards[0].date,
+    preview: awards.map((award) => award.title).join(", "),
+    content: (
+      <>
+        {awards.map((award) => (
+          <div key={award.title}>
+            <h3 className="font-semibold">{award.title}</h3>
+            <p className="text-neutral-500 dark:text-neutral-400">
+              {award.event} · {award.date}
+            </p>
+            <p className="mt-1">
+              {award.description}{" "}
+              {award.link && (
+                <ExternalLink href={award.link}>Read more</ExternalLink>
+              )}
+            </p>
+          </div>
+        ))}
+      </>
+    ),
+  },
+];
+
+const Notes: React.FC<AppProps> = ({ payload, openedAt }) => {
+  const notes = buildNotes(useContent());
+  const [selectedId, setSelectedId] = useState(payload ?? notes[0].id);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (payload) setSelectedId(payload);
+  }, [payload, openedAt]);
+
+  const filteredNotes = notes.filter((note) =>
+    `${note.title} ${note.preview}`.toLowerCase().includes(search.toLowerCase())
+  );
+  const selectedNote = notes.find((note) => note.id === selectedId) ?? notes[0];
+
+  return (
+    <div className="flex h-full">
+      <aside className="w-40 sm:w-64 shrink-0 flex flex-col select-none">
+        <div className="handle h-[52px] shrink-0" />
+        <div className="px-3 pb-2">
+          <div className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-black/5 dark:bg-white/[0.08]">
+            <Symbol name="magnifyingglass" className="w-3.5 h-3.5 opacity-50" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search"
+              className="w-full bg-transparent outline-none placeholder:text-black/40 dark:placeholder:text-white/40"
+            />
+          </div>
+        </div>
+        <div className="flex-grow overflow-y-auto px-2.5 pb-2">
+          {filteredNotes.map((note) => (
+            <button
+              key={note.id}
+              onClick={() => setSelectedId(note.id)}
+              className={cn(
+                "w-full text-left px-3 py-2 rounded-[10px] cursor-default",
+                selectedNote.id === note.id && "bg-[#ffd52e] dark:bg-[#6e5815]"
+              )}
+            >
+              <div className="font-bold truncate">{note.title}</div>
+              <div className="flex gap-2 text-12">
+                <span className="shrink-0">{note.date}</span>
+                <span className="truncate text-black/50 dark:text-white/50">
+                  {note.preview}
+                </span>
+              </div>
+            </button>
+          ))}
+          {filteredNotes.length === 0 && (
+            <div className="text-center text-black/40 dark:text-white/40 mt-6">
+              No Results
+            </div>
+          )}
+        </div>
+      </aside>
+      <article className="flex-grow flex flex-col min-w-0 bg-white dark:bg-[#1e1e1e]">
+        <Toolbar />
+        <div className="selectable flex-grow overflow-y-auto px-6 sm:px-12 pb-8">
+          <div className="text-center text-12 text-black/40 dark:text-white/40 mb-4">
+            {selectedNote.date}
+          </div>
+          <h1 className="text-26 font-bold mb-4">{selectedNote.title}</h1>
+          <div className="space-y-4 text-14 leading-relaxed max-w-prose">
+            {selectedNote.content}
+          </div>
+        </div>
+      </article>
+    </div>
+  );
+};
+
+export default Notes;

@@ -1,24 +1,34 @@
+import Providers from "./providers";
 import Desktop from "./components/desktop/desktop";
-import { FloatingDock } from "./components/dock/floating-dock";
+import Dock from "./components/dock/dock";
 import Menubar from "./components/menubar/menubar";
-import Image from "next/image";
-import Window from "./components/window/window";
-import Wallpaper from "./assets/images/wallpaper.jpg";
+import WindowManager from "./components/window/window-manager";
+import Wallpaper from "./components/system/wallpaper";
+import Spotlight from "./components/spotlight/spotlight";
+import Notifications from "./components/system/notifications";
+import BrightnessOverlay from "./components/system/brightness-overlay";
+import PowerScreen from "./components/system/power-screen";
+import Launcher from "./components/launcher/launcher";
 
 export default function Home() {
   return (
-    <main>
-      <div className="relative h-screen w-screen overflow-hidden">
-        <div className="absolute top-0 left-0 z-10 w-full h-full">
+    <Providers>
+      <main className="relative h-screen w-screen overflow-hidden">
+        <Wallpaper />
+        <Desktop />
+        <WindowManager />
+        <div className="absolute bottom-2 z-dock w-full flex justify-center pointer-events-none [&>*]:pointer-events-auto">
+          <Dock />
+        </div>
+        <Launcher />
+        <div className="absolute top-0 inset-x-0 z-menubar">
           <Menubar />
-          <Desktop />
-          <Window />
         </div>
-        <div className="absolute bottom-4 z-10 w-full flex justify-center">
-          <FloatingDock />
-        </div>
-        <Image src={Wallpaper} alt="wallpaper" fill />
-      </div>
-    </main>
+        <Spotlight />
+        <Notifications />
+        <BrightnessOverlay />
+        <PowerScreen />
+      </main>
+    </Providers>
   );
 }
