@@ -5,6 +5,7 @@ import { useContent } from "../../../context/content-context";
 import { parseYearMonth } from "../../../lib/content/dates";
 import { yearsOfExperience } from "../../../lib/utils";
 import { useWindows } from "../../../context/window-context";
+import { useOpenTarget } from "../../../hooks/use-open-file";
 import Symbol from "../../symbol";
 import Avatar from "../../avatar";
 import { Toolbar } from "../../window/toolbar";
@@ -12,6 +13,7 @@ import { Toolbar } from "../../window/toolbar";
 const About: React.FC = () => {
   const { profile, experiences } = useContent();
   const { links } = profile;
+  const openTarget = useOpenTarget();
   const { openApp } = useWindows();
   const current = experiences.find((experience) => !experience.end);
 
@@ -31,7 +33,7 @@ const About: React.FC = () => {
           {
             label: "website",
             symbol: "globe",
-            onClick: () => window.open(links.website, "_blank"),
+            onClick: () => openTarget({ type: "url", url: links.website! }),
           },
         ]
       : []),

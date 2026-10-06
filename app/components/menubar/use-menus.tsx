@@ -8,6 +8,7 @@ import { useContent } from "../../context/content-context";
 import { getApp } from "../../lib/apps";
 import { SESSION_KEYS } from "../../lib/constants";
 import { removeStorage } from "../../lib/storage";
+import { useOpenTarget } from "../../hooks/use-open-file";
 
 export interface Menu {
   id: string;
@@ -33,6 +34,7 @@ export function useMenus(): Menu[] {
   const { notify } = useNotifications();
   const { profile, experiences } = useContent();
   const { links } = profile;
+  const openTarget = useOpenTarget();
 
   const focusedApp = focusedId ? getApp(focusedId) : null;
   const appName = focusedApp?.name ?? "Finder";
@@ -161,7 +163,7 @@ export function useMenus(): Menu[] {
           .filter((link) => link.url)
           .map((link) => ({
             label: link.label,
-            onClick: () => window.open(link.url, "_blank"),
+            onClick: () => openTarget({ type: "url", url: link.url! }),
           })),
       ],
     },

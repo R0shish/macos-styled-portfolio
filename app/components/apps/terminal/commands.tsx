@@ -6,6 +6,7 @@ import { parseYearMonth } from "../../../lib/content/dates";
 
 export interface CommandContext {
   openApp: (id: AppId, payload?: string) => void;
+  openUrl: (url: string) => void;
   closeTerminal: () => void;
   clear: () => void;
   history: string[];
@@ -23,8 +24,6 @@ const files: Record<string, (context: CommandContext) => React.ReactNode> = {
   "contact.txt": (context) => commands.contact.run([], context),
 };
 
-const openLink = (url?: string) => url && window.open(url, "_blank");
-
 const openTargets: Record<
   string,
   { label: string; open: (context: CommandContext) => void }
@@ -35,6 +34,7 @@ const openTargets: Record<
     open: ({ openApp }) => openApp("finder", "projects"),
   },
   notes: { label: "Notes", open: ({ openApp }) => openApp("notes") },
+  safari: { label: "Safari", open: ({ openApp }) => openApp("safari") },
   mail: { label: "Mail", open: ({ openApp }) => openApp("mail") },
   settings: {
     label: "System Settings",
@@ -44,15 +44,18 @@ const openTargets: Record<
   cv: { label: "CV.pdf", open: ({ openApp }) => openApp("preview") },
   github: {
     label: "GitHub",
-    open: ({ content }) => openLink(content.profile.links.github),
+    open: ({ content, openUrl }) =>
+      content.profile.links.github && openUrl(content.profile.links.github),
   },
   linkedin: {
     label: "LinkedIn",
-    open: ({ content }) => openLink(content.profile.links.linkedin),
+    open: ({ content, openUrl }) =>
+      content.profile.links.linkedin && openUrl(content.profile.links.linkedin),
   },
   website: {
     label: "website",
-    open: ({ content }) => openLink(content.profile.links.website),
+    open: ({ content, openUrl }) =>
+      content.profile.links.website && openUrl(content.profile.links.website),
   },
 };
 

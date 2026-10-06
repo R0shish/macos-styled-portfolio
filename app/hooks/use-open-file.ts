@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useWindows } from "../context/window-context";
 import { Location, OpenTarget } from "../lib/file-system";
+import { canEmbed } from "../lib/browser";
 
 export function useOpenTarget(onOpenFolder?: (location: Location) => void) {
   const { openApp } = useWindows();
@@ -11,7 +12,9 @@ export function useOpenTarget(onOpenFolder?: (location: Location) => void) {
         case "app":
           return openApp(target.app, target.payload);
         case "url":
-          return window.open(target.url, "_blank", "noopener,noreferrer");
+          return canEmbed(target.url)
+            ? openApp("safari", target.url)
+            : window.open(target.url, "_blank", "noopener,noreferrer");
         case "folder":
           return onOpenFolder
             ? onOpenFolder(target.location)
