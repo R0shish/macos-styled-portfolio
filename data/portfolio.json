@@ -1,0 +1,249 @@
+{
+  "site": {
+    "title": "r0shish",
+    "description": "Portfolio Website"
+  },
+  "profile": {
+    "name": "Roshish Shrestha",
+    "initials": "RS",
+    "username": "roshish",
+    "role": "Software Engineer",
+    "summary": "Software engineer specializing in developing innovative solutions across mobile, web and backend.",
+    "intro": [
+      "I mostly work with Flutter on mobile and Golang on the backend, with a bit of React on the web. Here you'll find notes on where I've worked, what I work with and a few things I'm proud of."
+    ],
+    "focus": ["Flutter", "Golang", "React"],
+    "careerStart": "2022-02",
+    "email": "roshish152002@gmail.com",
+    "cv": "/CV.pdf",
+    "links": {
+      "website": "https://www.roshishshrestha.com.np",
+      "github": "https://www.github.com/r0shish",
+      "linkedin": "https://www.linkedin.com/in/r0shish",
+      "repository": "https://github.com/R0shish/macos-styled-portfolio"
+    }
+  },
+  "experiences": [
+    {
+      "id": "tutero",
+      "company": "Tutero Pty Ltd",
+      "role": "Software Engineer",
+      "link": "https://www.tutero.com",
+      "start": "2025-10",
+      "description": "Worked across both frontend and backend to fix production issues and deliver complete features. Built both web and mobile applications maintaining separate projects for web and mobile while reusing core logic where possible and ensuring consistent behavior across platforms. Designed, developed, and integrated Golang-based microservices, focusing on clean architecture, performance, and reliability.",
+      "projects": ["Tutoring Platform", "Tutero Mobile App"]
+    },
+    {
+      "id": "swifttech",
+      "company": "Swift Technology | IME Group",
+      "role": "Software Engineer",
+      "link": "https://swifttech.com.np",
+      "start": "2024-09",
+      "end": "2025-10",
+      "description": "Migrated legacy Android (Java/Kotlin) and iOS (UIKit/SwiftUI) applications and native libraries to Flutter. Worked with sensitive financial data, ensuring accuracy, security, and compliance with industry standards. Worked on a multi-country remittance application with dynamic country-specific behavior, designing a scalable architecture across multiple layers to support country-based variations and future extensibility.",
+      "projects": ["IME Remit", "JME Remittance"]
+    },
+    {
+      "id": "slashplus",
+      "company": "Slash Plus",
+      "role": "Software Engineer",
+      "link": "http://slashplus.com.np",
+      "start": "2023-06",
+      "end": "2024-09",
+      "description": "Worked on revamping and enhancing existing legacy applications, introducing new features and increasing overall performance using Flutter. Worked with native languages (Kotlin & Swift) to create packages with native features like remote shell execution with root access, a custom printer library, iOS Object Capture API etc.",
+      "projects": [
+        "Signage Plus",
+        "Digibuzz",
+        "Blue Bus Ticketing",
+        "GPS Sewa",
+        "Sajha Plus"
+      ]
+    },
+    {
+      "id": "softechtonic",
+      "company": "Softechtonic",
+      "role": "Junior Flutter Developer",
+      "link": "https://softechtonic.net",
+      "start": "2022-02",
+      "end": "2023-06",
+      "description": "Specialized in the analysis, design, and development of mobile applications for schools. Identified the needs and requirements of educational institutions and created user-friendly and efficient apps to support teaching and learning. Worked through the full lifecycle of mobile app development, from concept to launch.",
+      "projects": []
+    }
+  ],
+  "projects": [
+    {
+      "id": "tutero-platform",
+      "name": "Tutoring Platform",
+      "company": "Tutero",
+      "description": "Web platform for Tutero's tutoring service, backed by Golang microservices.",
+      "tags": ["Web", "Golang"],
+      "link": "https://app.tutero.com"
+    },
+    {
+      "id": "tutero-mobile",
+      "name": "Tutero Mobile App",
+      "company": "Tutero",
+      "description": "Mobile app for Tutero sharing core logic with the web platform for consistent behavior across platforms.",
+      "tags": ["Mobile", "iOS", "Android"],
+      "link": "https://apps.apple.com/us/app/tutero/id1633367352"
+    },
+    {
+      "id": "ime-remit",
+      "name": "IME Remit",
+      "company": "Swift Technology",
+      "description": "Multi-country remittance application with dynamic country-specific behavior, migrated from native Android and iOS to Flutter.",
+      "tags": ["Flutter", "Fintech"]
+    },
+    {
+      "id": "jme-remittance",
+      "name": "JME Remittance",
+      "company": "Swift Technology",
+      "description": "Remittance app handling sensitive financial data with a focus on accuracy, security and compliance.",
+      "tags": ["Flutter", "Fintech"],
+      "link": "https://play.google.com/store/apps/details?id=com.remit.jmecustomer"
+    },
+    {
+      "id": "signage-plus",
+      "name": "Signage Plus",
+      "company": "Slash Plus",
+      "description": "Revamped legacy application with new features and native Kotlin packages.",
+      "tags": ["Flutter", "Kotlin"],
+      "link": "https://signageplus.net"
+    },
+    {
+      "id": "digibuzz",
+      "name": "Digibuzz",
+      "company": "Slash Plus",
+      "description": "Revamped legacy application with new features in Flutter.",
+      "tags": ["Flutter"],
+      "link": "https://digibuzznp.com"
+    },
+    {
+      "id": "blue-bus",
+      "name": "Blue Bus Ticketing",
+      "company": "Slash Plus",
+      "description": "Bus ticketing application built with Flutter at Slash Plus.",
+      "tags": ["Flutter"],
+      "link": "https://play.google.com/store/apps/details?id=com.slashplus.bluebusticketing"
+    },
+    {
+      "id": "gps-sewa",
+      "name": "GPS Sewa",
+      "company": "Slash Plus",
+      "description": "Mobile application built with Flutter at Slash Plus.",
+      "tags": ["Flutter"],
+      "link": "https://play.google.com/store/apps/details?id=com.slashplus.gpssewa"
+    },
+    {
+      "id": "sajha-plus",
+      "name": "Sajha Plus",
+      "company": "Slash Plus",
+      "description": "Mobile application built with Flutter at Slash Plus.",
+      "tags": ["Flutter"],
+      "link": "https://play.google.com/store/apps/details?id=com.slashplus.sajhaplus.sajha_plus"
+    },
+    {
+      "id": "skylearn",
+      "name": "SkyLearn",
+      "company": "NASA Space Apps",
+      "description": "Built in 36 hours for the challenge \"Eclipses: Perspective is Everything\". Global Nominee.",
+      "tags": ["Flutter", "Hackathon"],
+      "link": "https://www.spaceappschallenge.org/2023/find-a-team/herald-rangers/?tab=project"
+    },
+    {
+      "id": "trashfree",
+      "name": "TrashFree",
+      "company": "Ace Ignite Hackathon",
+      "description": "Waste management app built in 36 hours. 2nd Runner Up at Ace Ignite Hackathon.",
+      "tags": ["Flutter", "Hackathon"],
+      "link": "https://devfolio.co/projects/trashfree-0525"
+    },
+    {
+      "id": "portfolio",
+      "name": "macOS Portfolio",
+      "company": "Personal",
+      "description": "This website. A macOS styled portfolio built with Next.js.",
+      "tags": ["Next.js", "Framer Motion"],
+      "link": "https://github.com/R0shish/macos-styled-portfolio"
+    }
+  ],
+  "awards": [
+    {
+      "title": "WLV Exchange Fellowship 2024",
+      "event": "Herald College Kathmandu",
+      "date": "Feb 2024",
+      "description": "A funded academic trip to the University of Wolverhampton, United Kingdom. One of the 9 students selected among students from Final Year BIT, BIBM and Masters of Herald College Kathmandu.",
+      "link": "https://heraldcollege.edu.np/wlv-exchange-fellowship-2024-a-week-of-academic-adventure"
+    },
+    {
+      "title": "Global Nominees",
+      "event": "NASA International Space Apps Challenge",
+      "date": "Oct 2023",
+      "description": "Developed a mobile application (frontend and backend) called \"SkyLearn\" on the challenge \"Eclipses: Perspective is Everything\" within a tight deadline of 36 hours.",
+      "link": "https://www.spaceappschallenge.org/2023/find-a-team/herald-rangers/?tab=project"
+    },
+    {
+      "title": "2nd Runner Up",
+      "event": "Ace Ignite Hackathon",
+      "date": "Nov 2022",
+      "description": "Developed a mobile application (frontend and backend) for waste management called \"TrashFree\" within a tight deadline of 36 hours.",
+      "link": "https://youtu.be/7h1ERHh1tk4"
+    }
+  ],
+  "skills": {
+    "Languages": ["Dart", "Golang", "JavaScript", "Kotlin", "Swift"],
+    "Frameworks": [
+      "Flutter",
+      "ReactJS",
+      "NodeJS",
+      "Framer Motion",
+      "Socket.io"
+    ],
+    "Databases": ["Firebase", "MongoDB", "PostgreSQL", "CockroachDB", "Neo4j"],
+    "Architecture": ["BLoC", "Riverpod", "Clean Architecture", "MVP"],
+    "Tools": ["CI/CD", "Kubectl", "Telepresence"]
+  },
+  "system": {
+    "hostname": "portfolio",
+    "defaultAppearance": "dark",
+    "defaultWallpaper": "synthwave",
+    "wallpapers": [
+      {
+        "id": "synthwave",
+        "name": "Synthwave",
+        "src": "/wallpapers/synthwave.jpg"
+      },
+      {
+        "id": "mountains",
+        "name": "Mountains",
+        "src": "/wallpapers/mountains.jpg",
+        "isLight": true
+      },
+      {
+        "id": "dusk",
+        "name": "Dusk",
+        "gradient": "linear-gradient(160deg, #2b1055 0%, #7597de 55%, #f6b2a8 100%)"
+      },
+      {
+        "id": "ocean",
+        "name": "Ocean",
+        "gradient": "linear-gradient(200deg, #0f2027 0%, #203a43 45%, #2c7a8c 100%)"
+      },
+      {
+        "id": "sunrise",
+        "name": "Sunrise",
+        "gradient": "linear-gradient(180deg, #f9d5a7 0%, #f6a192 50%, #b06ab3 100%)",
+        "isLight": true
+      },
+      {
+        "id": "graphite",
+        "name": "Graphite",
+        "gradient": "radial-gradient(circle at 30% 20%, #4b4b52 0%, #1c1c1f 70%)"
+      }
+    ],
+    "welcome": {
+      "title": "Welcome 👋",
+      "body": "Double-click an icon to open it, or press ⌘K to search."
+    }
+  }
+}
