@@ -92,6 +92,11 @@ export const portfolioSchema = z.object({
       title: z.string(),
       body: z.string(),
     }),
+    browser: z
+      .object({
+        homepage: url.optional(),
+      })
+      .default({}),
   }),
 });
 

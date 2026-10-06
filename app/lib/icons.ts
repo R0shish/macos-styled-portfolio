@@ -15,6 +15,8 @@ import MailLight from "../assets/icons/apps/light/mail.png";
 import Settings from "../assets/icons/apps/settings.png";
 import SettingsLight from "../assets/icons/apps/light/settings.png";
 import Apps from "../assets/icons/apps/apps.png";
+import Safari from "../assets/icons/apps/safari.png";
+import SafariLight from "../assets/icons/apps/light/safari.png";
 import AppsLight from "../assets/icons/apps/light/apps.png";
 
 export interface ThemedIcon {
@@ -33,4 +35,5 @@ export const icons = {
   mail: { dark: Mail, light: MailLight },
   settings: { dark: Settings, light: SettingsLight },
   apps: { dark: Apps, light: AppsLight },
+  safari: { dark: Safari, light: SafariLight },
 };
