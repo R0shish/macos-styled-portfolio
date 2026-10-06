@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useWindows } from "../../../context/window-context";
 import { useContent } from "../../../context/content-context";
+import { useOpenTarget } from "../../../hooks/use-open-file";
 import { completions, runCommand } from "./commands";
 import { Toolbar } from "../../window/toolbar";
 
@@ -28,6 +29,7 @@ const Prompt: React.FC = () => {
 const Terminal: React.FC = () => {
   const { openApp, closeApp } = useWindows();
   const content = useContent();
+  const openTarget = useOpenTarget();
   const { profile } = content;
   const [entries, setEntries] = useState<Entry[]>([]);
   const [input, setInput] = useState("");
@@ -63,6 +65,7 @@ const Terminal: React.FC = () => {
       clear: () => (cleared = true),
       history: nextHistory,
       content,
+      openUrl: (url) => openTarget({ type: "url", url }),
     });
 
     setHistory(nextHistory);

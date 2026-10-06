@@ -5,6 +5,7 @@ import { createContent } from "../../../../test/fixtures";
 
 const createContext = (): CommandContext => ({
   openApp: vi.fn(),
+  openUrl: vi.fn(),
   closeTerminal: vi.fn(),
   clear: vi.fn(),
   history: [],
@@ -35,6 +36,12 @@ describe("terminal commands", () => {
     const context = createContext();
     expect(runCommand("open cv", context)).toBe("Opening CV.pdf...");
     expect(context.openApp).toHaveBeenCalledWith("preview");
+  });
+
+  it("opens links through the browser policy", () => {
+    const context = createContext();
+    expect(runCommand("open github", context)).toBe("Opening GitHub...");
+    expect(context.openUrl).toHaveBeenCalledWith("https://github.com/jane");
   });
 
   it("lists experience from content", () => {
