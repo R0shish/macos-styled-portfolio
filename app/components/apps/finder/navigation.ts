@@ -1,5 +1,7 @@
 export type FinderView = "grid" | "list";
 
+export const EMPTY_TRASH_PAYLOAD = "trash/empty";
+
 const ARROW_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
 
 export const isArrowKey = (key: string) => ARROW_KEYS.includes(key);

@@ -15,6 +15,7 @@ import {
 import { useContent } from "../../../context/content-context";
 import { FILE_DRAG_TYPE, useFiles } from "../../../context/file-context";
 import { useOpenTarget } from "../../../hooks/use-open-file";
+import { useAvailableStorage } from "../../../hooks/use-available-storage";
 import ContextMenu, { useContextMenu } from "../../context-menu";
 import QuickLook, { toQuickLookItem } from "../../quick-look/quick-look";
 import Sidebar, { SidebarSection } from "../../window/sidebar";
@@ -25,6 +26,7 @@ import FinderDetail from "./finder-detail";
 import { buildBackgroundMenu, buildItemMenu } from "./finder-menus";
 import { MAX_SIDEBAR_TAGS, getTagColor } from "./tag-colors";
 import {
+  EMPTY_TRASH_PAYLOAD,
   FinderView,
   countGridColumns,
   getNextSelectionIndex,
@@ -75,6 +77,8 @@ const getSidebarSections = (
 ];
 
 const parsePayload = (payload?: string) => {
+  if (payload === EMPTY_TRASH_PAYLOAD)
+    return { location: "trash" as const, selection: undefined, empty: true };
   const [location, selection] = payload?.split("/") ?? [];
   return {
     location: isLocation(location) ? location : undefined,
@@ -98,12 +102,13 @@ const Finder: React.FC<AppProps> = ({ payload, openedAt }) => {
   );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [isQuickLookOpen, setIsQuickLookOpen] = useState(false);
-  const [isConfirmingEmpty, setIsConfirmingEmpty] = useState(false);
+  const [isConfirmingEmpty, setIsConfirmingEmpty] = useState(!!initial.empty);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<HTMLDivElement>(null);
   const contextMenu = useContextMenu(rootRef);
+  const availableStorage = useAvailableStorage();
 
   const location = currentEntry(history);
   const isTrash = location === "trash";
@@ -126,9 +131,10 @@ const Finder: React.FC<AppProps> = ({ payload, openedAt }) => {
   };
 
   useEffect(() => {
-    const { location, selection } = parsePayload(payload);
+    const { location, selection, empty } = parsePayload(payload);
     if (location) setHistory((current) => pushHistory(current, location));
     setSelectedId(selection ?? null);
+    if (empty) setIsConfirmingEmpty(true);
   }, [payload, openedAt]);
 
   const openTarget = useOpenTarget(navigate);
@@ -302,6 +308,7 @@ const Finder: React.FC<AppProps> = ({ payload, openedAt }) => {
                     })
                   );
                 }}
+                onStartRename={startRename}
                 onRename={(entry, name) => {
                   files.rename(entry.id, name);
                   setRenamingId(null);
@@ -330,8 +337,10 @@ const Finder: React.FC<AppProps> = ({ payload, openedAt }) => {
 
         <div className="h-7 shrink-0 flex items-center px-4 text-12 text-black/50 dark:text-white/55 border-t border-black/5 dark:border-black/40">
           <div className="flex-grow text-center" aria-live="polite">
-            {visibleItems.length} {visibleItems.length === 1 ? "item" : "items"}
-            {selected && `, "${selected.name}" selected`}
+            {selected
+              ? `1 of ${visibleItems.length} selected`
+              : `${visibleItems.length} ${visibleItems.length === 1 ? "item" : "items"}`}
+            {availableStorage && `, ${availableStorage} available`}
           </div>
           {view === "grid" && (
             <input

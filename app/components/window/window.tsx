@@ -91,7 +91,8 @@ const Window: React.FC<WindowProps> = ({
           state.isMinimized || isHidden
             ? "pointer-events-none"
             : "pointer-events-auto",
-          isHidden && "invisible"
+          isHidden && "invisible",
+          !isFocused && "inactive-window"
         )}
         style={{
           width: frame.size.width,

@@ -1,15 +1,19 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect, useRef } from "react";
 import AppIcon from "../../dock/app-icon";
 import RenameField from "./rename-field";
 import { FileEntry } from "../../../lib/file-system";
 import { FinderView } from "./navigation";
 import { cn } from "../../../lib/utils";
+import { useWindowFocus } from "../../window/window-focus";
+
+const RENAME_DELAY_MS = 500;
 
 export interface FinderItemHandlers {
   onSelect: (entry: FileEntry) => void;
   onOpen: (entry: FileEntry) => void;
   onContextMenu: (e: React.MouseEvent, entry: FileEntry) => void;
   onDragStart: (e: React.DragEvent<HTMLElement>, entry: FileEntry) => void;
+  onStartRename: (entry: FileEntry) => void;
   onRename: (entry: FileEntry, name: string) => void;
   onCancelRename: () => void;
 }
@@ -25,6 +29,16 @@ interface FinderItemsProps extends FinderItemHandlers {
 
 const FinderItems = forwardRef<HTMLDivElement, FinderItemsProps>(
   ({ entries, view, iconSize, selectedId, renamingId, ...handlers }, ref) => {
+    const isFocused = useWindowFocus();
+    const renameTimer = useRef<ReturnType<typeof setTimeout>>();
+    const cancelPendingRename = () => clearTimeout(renameTimer.current);
+
+    useEffect(() => cancelPendingRename, [selectedId]);
+
+    const selectionColor = isFocused
+      ? "bg-[#0a5bc2] text-white"
+      : "bg-black/10 dark:bg-white/15";
+
     const itemProps = (entry: FileEntry) => ({
       role: "option",
       "aria-selected": selectedId === entry.id,
@@ -35,7 +49,10 @@ const FinderItems = forwardRef<HTMLDivElement, FinderItemsProps>(
         e.stopPropagation();
         handlers.onSelect(entry);
       },
-      onDoubleClick: () => handlers.onOpen(entry),
+      onDoubleClick: () => {
+        cancelPendingRename();
+        handlers.onOpen(entry);
+      },
       onContextMenu: (e: React.MouseEvent) => handlers.onContextMenu(e, entry),
     });
 
@@ -47,7 +64,19 @@ const FinderItems = forwardRef<HTMLDivElement, FinderItemsProps>(
           onCancel={handlers.onCancelRename}
         />
       ) : (
-        <div className={className}>{entry.name}</div>
+        <div
+          className={className}
+          onClick={() => {
+            if (selectedId !== entry.id) return;
+            cancelPendingRename();
+            renameTimer.current = setTimeout(
+              () => handlers.onStartRename(entry),
+              RENAME_DELAY_MS
+            );
+          }}
+        >
+          {entry.name}
+        </div>
       );
 
     if (view === "grid")
@@ -85,7 +114,7 @@ const FinderItems = forwardRef<HTMLDivElement, FinderItemsProps>(
                   entry,
                   cn(
                     "px-1.5 rounded-[4px] text-center leading-[17px] line-clamp-2 max-w-full",
-                    isSelected && "bg-[#0a5bc2] text-white"
+                    isSelected && selectionColor
                   )
                 )}
               </div>
@@ -109,7 +138,7 @@ const FinderItems = forwardRef<HTMLDivElement, FinderItemsProps>(
               className={cn(
                 "flex items-center px-2 h-7 rounded-md",
                 isSelected
-                  ? "bg-[#0a5bc2] text-white"
+                  ? selectionColor
                   : index % 2 === 1 && "bg-black/[0.03] dark:bg-white/[0.04]"
               )}
             >
@@ -120,7 +149,8 @@ const FinderItems = forwardRef<HTMLDivElement, FinderItemsProps>(
               <div
                 className={cn(
                   "w-32 truncate",
-                  !isSelected && "text-black/50 dark:text-white/50"
+                  !(isSelected && isFocused) &&
+                    "text-black/50 dark:text-white/50"
                 )}
               >
                 {entry.kind}

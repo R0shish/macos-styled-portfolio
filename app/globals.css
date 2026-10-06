@@ -82,3 +82,7 @@ textarea,
     transform: translateX(300%);
   }
 }
+
+.inactive-window ::selection {
+  background: rgba(128, 128, 128, 0.3);
+}
