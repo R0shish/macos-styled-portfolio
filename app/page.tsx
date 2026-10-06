@@ -21,7 +21,7 @@ export default function Home() {
           <Dock />
         </div>
         <Launcher />
-        <div className="absolute top-0 inset-x-0 z-menubar">
+        <div className="absolute top-0 inset-x-0 z-menubar pointer-events-none [&>*]:pointer-events-auto">
           <Menubar />
         </div>
         <Spotlight />
