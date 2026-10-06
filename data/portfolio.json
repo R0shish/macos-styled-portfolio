@@ -14,10 +14,10 @@
     ],
     "focus": ["Flutter", "Golang", "React"],
     "careerStart": "2022-02",
-    "email": "roshish152002@gmail.com",
+    "email": "hello@rosh.sh",
     "cv": "/CV.pdf",
     "links": {
-      "website": "https://www.roshishshrestha.com.np",
+      "website": "https://rosh.sh",
       "github": "https://www.github.com/r0shish",
       "linkedin": "https://www.linkedin.com/in/r0shish",
       "repository": "https://github.com/R0shish/macos-styled-portfolio"
@@ -244,9 +244,6 @@
     "welcome": {
       "title": "Welcome 👋",
       "body": "Double-click an icon to open it, or press ⌘K to search."
-    },
-    "browser": {
-      "homepage": "https://rosh.sh"
     }
   }
 }
