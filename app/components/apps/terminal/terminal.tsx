@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { RefObject, useEffect, useRef, useState } from "react";
 import { useWindows } from "../../../context/window-context";
 import { useContent } from "../../../context/content-context";
 import { useOpenTarget } from "../../../hooks/use-open-file";
@@ -26,6 +26,40 @@ const Prompt: React.FC = () => {
   );
 };
 
+const measureCharWidth = (element: HTMLElement) => {
+  const context = document.createElement("canvas").getContext("2d");
+  if (!context) return 0;
+  const { fontSize, fontFamily } = getComputedStyle(element);
+  context.font = `${fontSize} ${fontFamily}`;
+  return context.measureText("M").width;
+};
+
+function useTerminalSize(ref: RefObject<HTMLElement>) {
+  const [size, setSize] = useState({ columns: 80, rows: 24 });
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const charWidth = measureCharWidth(element);
+    const style = getComputedStyle(element);
+    const lineHeight = parseFloat(style.lineHeight);
+    const padding = parseFloat(style.paddingLeft) * 2;
+    if (!charWidth || !lineHeight) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize({
+        columns: Math.max(1, Math.floor((width - padding) / charWidth)),
+        rows: Math.max(1, Math.floor(height / lineHeight)),
+      });
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return size;
+}
+
 const Terminal: React.FC = () => {
   const { openApp, closeApp } = useWindows();
   const content = useContent();
@@ -49,7 +83,9 @@ const Terminal: React.FC = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(0);
+  const { columns, rows } = useTerminalSize(screenRef);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
@@ -124,6 +160,17 @@ const Terminal: React.FC = () => {
           setEntries([]);
         }
         break;
+      case "c":
+        if (e.ctrlKey) {
+          e.preventDefault();
+          setEntries([
+            ...entries,
+            { id: nextId.current++, input: `${input}^C`, output: null },
+          ]);
+          setInput("");
+          setHistoryIndex(null);
+        }
+        break;
     }
   };
 
@@ -134,12 +181,13 @@ const Terminal: React.FC = () => {
         centerTitle
         title={
           <span className="text-13 font-semibold text-white/70">
-            {profile.username} — -zsh — 80×24
+            {profile.username} — -zsh — {columns}×{rows}
           </span>
         }
         className="h-[52px] border-b border-black/60"
       />
       <div
+        ref={screenRef}
         className="selectable flex-grow overflow-y-auto font-mono text-12 leading-relaxed p-2 cursor-text"
         onClick={() => {
           if (!window.getSelection()?.toString()) inputRef.current?.focus();
