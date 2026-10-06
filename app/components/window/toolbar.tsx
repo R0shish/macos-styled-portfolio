@@ -7,6 +7,7 @@ interface ToolbarProps {
   title?: React.ReactNode;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
+  center?: React.ReactNode;
   hasControls?: boolean;
   centerTitle?: boolean;
   className?: string;
@@ -16,6 +17,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   title,
   leading,
   trailing,
+  center,
   hasControls,
   centerTitle,
   className,
@@ -42,7 +44,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           {title}
         </div>
       )}
-      <div className="flex-grow" />
+      {center ? (
+        <div className="flex-grow flex justify-center min-w-0">{center}</div>
+      ) : (
+        <div className="flex-grow" />
+      )}
       {trailing}
     </div>
   );
