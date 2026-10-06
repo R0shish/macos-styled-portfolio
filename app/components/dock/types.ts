@@ -1,4 +1,5 @@
 import { IconSource } from "../../lib/icons";
+import { MenuEntry } from "../menubar/menu-dropdown";
 
 export interface DockItem {
   key: string;
@@ -9,4 +10,5 @@ export interface DockItem {
   isLaunching?: boolean;
   isMinimizedWindow?: boolean;
   onDropFile?: (fileId: string) => void;
+  menu?: MenuEntry[];
 }

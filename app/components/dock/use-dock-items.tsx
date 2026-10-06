@@ -5,6 +5,7 @@ import { useFiles } from "../../context/file-context";
 import { useOverlays } from "../../context/overlay-context";
 import { useWindows } from "../../context/window-context";
 import { DockItem } from "./types";
+import { EMPTY_TRASH_PAYLOAD } from "../apps/finder/navigation";
 
 import VSCodeIcon from "../../assets/icons/apps/vscode.png";
 import TrashIcon from "../../assets/icons/files/trash.png";
@@ -21,10 +22,30 @@ const PINNED_APPS: AppId[] = [
 ];
 
 export function useDockItems(): DockItem[][] {
-  const { windows, launching, openApp, focusApp } = useWindows();
+  const { windows, launching, openApp, focusApp, minimizeApp, closeApp } =
+    useWindows();
   const { isLauncherOpen, setLauncherOpen } = useOverlays();
   const { trashed, moveToTrash } = useFiles();
   const { repository } = useContent().profile.links;
+
+  const appMenu = (id: AppId): DockItem["menu"] => {
+    const isOpen = windows.some((w) => w.id === id);
+    if (id === "finder")
+      return [
+        { label: "New Finder Window", onClick: () => openApp("finder") },
+        ...(isOpen
+          ? [{ label: "Hide", onClick: () => minimizeApp("finder") }]
+          : []),
+      ];
+    return isOpen
+      ? [
+          { label: "Show", onClick: () => focusApp(id) },
+          "separator",
+          { label: "Hide", onClick: () => minimizeApp(id) },
+          { label: "Quit", onClick: () => closeApp(id) },
+        ]
+      : [{ label: "Open", onClick: () => openApp(id) }];
+  };
 
   const appItem = (id: AppId): DockItem => ({
     key: id,
@@ -36,6 +57,7 @@ export function useDockItems(): DockItem[][] {
     },
     isRunning: id === "finder" || windows.some((w) => w.id === id),
     isLaunching: launching === id,
+    menu: appMenu(id),
   });
 
   const [finder, ...pinned] = PINNED_APPS.map(appItem);
@@ -84,6 +106,15 @@ export function useDockItems(): DockItem[][] {
     icon: trashed.length ? TrashFullIcon : TrashIcon,
     onClick: () => openApp("finder", "trash"),
     onDropFile: (fileId) => moveToTrash([fileId]),
+    menu: [
+      { label: "Open", onClick: () => openApp("finder", "trash") },
+      "separator",
+      {
+        label: "Empty Trash",
+        disabled: !trashed.length,
+        onClick: () => openApp("finder", EMPTY_TRASH_PAYLOAD),
+      },
+    ],
   };
 
   return [
