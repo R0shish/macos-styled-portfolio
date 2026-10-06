@@ -23,7 +23,7 @@ const Mail: React.FC = () => {
     <div className="h-full flex flex-col bg-white dark:bg-[#282025]">
       <Toolbar
         hasControls
-        title="New Message"
+        title={subject.trim() || "New Message"}
         trailing={
           <ToolbarGroup>
             <ToolbarButton

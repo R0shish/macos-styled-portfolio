@@ -8,7 +8,7 @@ import { icons } from "../../lib/icons";
 import Symbol from "../symbol";
 
 const Notifications: React.FC = () => {
-  const { notifications, dismiss } = useNotifications();
+  const { notifications, dismiss, hold, release } = useNotifications();
 
   return (
     <div className="absolute right-3 top-10 z-notifications w-[min(340px,calc(100vw-24px))] flex flex-col gap-2 pointer-events-none">
@@ -21,6 +21,8 @@ const Notifications: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 60 }}
             transition={{ type: "spring", stiffness: 400, damping: 32 }}
+            onMouseEnter={() => hold(notification.id)}
+            onMouseLeave={() => release(notification.id)}
             className="group relative pointer-events-auto flex items-center gap-3 p-3 rounded-[22px] bg-[#f4f2f5]/70 dark:bg-[#2a2429]/60 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_10px_30px_rgba(0,0,0,0.3),inset_0_0_0_0.5px_rgba(255,255,255,0.25)] text-black dark:text-white cursor-default"
           >
             <div className="relative w-9 h-9 shrink-0">
