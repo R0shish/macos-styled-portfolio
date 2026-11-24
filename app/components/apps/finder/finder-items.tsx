@@ -30,7 +30,7 @@ interface FinderItemsProps extends FinderItemHandlers {
 const FinderItems = forwardRef<HTMLDivElement, FinderItemsProps>(
   ({ entries, view, iconSize, selectedId, renamingId, ...handlers }, ref) => {
     const isFocused = useWindowFocus();
-    const renameTimer = useRef<ReturnType<typeof setTimeout>>();
+    const renameTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     const cancelPendingRename = () => clearTimeout(renameTimer.current);
 
     useEffect(() => cancelPendingRename, [selectedId]);

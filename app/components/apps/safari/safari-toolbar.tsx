@@ -5,7 +5,7 @@ import { Toolbar, ToolbarButton, ToolbarGroup } from "../../window/toolbar";
 import { cn } from "../../../lib/utils";
 
 interface SafariToolbarProps {
-  addressRef: RefObject<HTMLInputElement>;
+  addressRef: RefObject<HTMLInputElement | null>;
   url: string;
   isLoading: boolean;
   canGoBack: boolean;

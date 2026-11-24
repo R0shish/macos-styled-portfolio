@@ -26,7 +26,7 @@ export const intersects = (marquee: Marquee, rect: DOMRect) =>
   rect.bottom > marquee.top;
 
 export function useMarqueeSelection(
-  containerRef: RefObject<HTMLElement>,
+  containerRef: RefObject<HTMLElement | null>,
   itemSelector: string,
   getItemId: (element: HTMLElement) => string,
   onSelectionChange: (ids: string[]) => void

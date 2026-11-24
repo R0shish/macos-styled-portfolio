@@ -13,7 +13,7 @@ interface ContextMenuState {
   entries: MenuEntry[];
 }
 
-export function useContextMenu(containerRef: RefObject<HTMLElement>) {
+export function useContextMenu(containerRef: RefObject<HTMLElement | null>) {
   const [menu, setMenu] = useState<ContextMenuState | null>(null);
 
   const open = useCallback(

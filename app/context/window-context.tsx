@@ -47,7 +47,7 @@ export const WindowProvider: React.FC<{ children: React.ReactNode }> = ({
   const [state, dispatch] = useReducer(windowReducer, initialWindowState);
   const [launching, setLaunching] = useState<AppId | null>(null);
   const stateRef = useRef(state);
-  const launchTimer = useRef<ReturnType<typeof setTimeout>>();
+  const launchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     stateRef.current = state;

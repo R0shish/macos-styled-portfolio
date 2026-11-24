@@ -34,7 +34,7 @@ const measureCharWidth = (element: HTMLElement) => {
   return context.measureText("M").width;
 };
 
-function useTerminalSize(ref: RefObject<HTMLElement>) {
+function useTerminalSize(ref: RefObject<HTMLElement | null>) {
   const [size, setSize] = useState({ columns: 80, rows: 24 });
 
   useEffect(() => {

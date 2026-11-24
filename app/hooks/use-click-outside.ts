@@ -2,7 +2,7 @@ import { RefObject, useEffect } from "react";
 import { useLatest } from "./use-latest";
 
 export function useClickOutside(
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   onClickOutside: () => void,
   isActive = true
 ) {
